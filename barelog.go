@@ -1,4 +1,4 @@
-package barelog
+package lcp
 
 import (
 	"context"
@@ -23,7 +23,6 @@ var (
 	resetColor  = "\033[0m"
 	ctxKey      = &contextKey{}
 
-	// глобальный логгер по умолчанию
 	globalLogger = New(INFO)
 )
 
@@ -41,32 +40,25 @@ func New(level Level) *Logger {
 	}
 }
 
-func (l *Logger) log(level Level, msg string, kv ...any) {
+func (l *Logger) log(level Level, args ...any) {
 	if level < l.level {
 		return
 	}
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 	tag := fmt.Sprintf("%s%-5s%s", levelColors[level], levelNames[level], resetColor)
+	msg := strings.TrimSpace(fmt.Sprintln(args...)) // пробелы + без \n
 	line := fmt.Sprintf("%s [%s] %s", tag, timestamp, msg)
-
-	if len(kv) > 0 {
-		parts := make([]string, 0, len(kv)/2)
-		for i := 0; i < len(kv)-1; i += 2 {
-			parts = append(parts, fmt.Sprintf("%v=%v", kv[i], kv[i+1]))
-		}
-		line += " | " + strings.Join(parts, " ")
-	}
-
 	fmt.Fprintln(l.out, line)
 }
 
-// Методы уровня логгера
-func (l *Logger) Debug(msg string, kv ...any) { l.log(DEBUG, msg, kv...) }
-func (l *Logger) Info(msg string, kv ...any)  { l.log(INFO, msg, kv...) }
-func (l *Logger) Warn(msg string, kv ...any)  { l.log(WARN, msg, kv...) }
-func (l *Logger) Error(msg string, kv ...any) { l.log(ERROR, msg, kv...) }
+// --- Уровневые методы ---
 
-// --- Глобальный логгер ---
+func (l *Logger) Debug(args ...any) { l.log(DEBUG, args...) }
+func (l *Logger) Info(args ...any)  { l.log(INFO, args...) }
+func (l *Logger) Warn(args ...any)  { l.log(WARN, args...) }
+func (l *Logger) Error(args ...any) { l.log(ERROR, args...) }
+
+// --- Глобальные обёртки ---
 
 func SetGlobal(logger *Logger) {
 	if logger != nil {
@@ -74,12 +66,12 @@ func SetGlobal(logger *Logger) {
 	}
 }
 
-func Debug(msg string, kv ...any) { globalLogger.Debug(msg, kv...) }
-func Info(msg string, kv ...any)  { globalLogger.Info(msg, kv...) }
-func Warn(msg string, kv ...any)  { globalLogger.Warn(msg, kv...) }
-func Error(msg string, kv ...any) { globalLogger.Error(msg, kv...) }
+func Debug(args ...any) { globalLogger.Debug(args...) }
+func Info(args ...any)  { globalLogger.Info(args...) }
+func Warn(args ...any)  { globalLogger.Warn(args...) }
+func Error(args ...any) { globalLogger.Error(args...) }
 
-// --- Контекстная поддержка ---
+// --- Поддержка контекста ---
 
 func WithContext(ctx context.Context, logger *Logger) context.Context {
 	return context.WithValue(ctx, ctxKey, logger)
@@ -92,11 +84,11 @@ func FromContext(ctx context.Context) *Logger {
 	return globalLogger
 }
 
-// Init настраивает глобальный логгер из переменных окружения.
-// Например: BARELOG_LEVEL=debug
+// --- Init из окружения ---
+
 func Init() {
 	levelStr := strings.ToLower(os.Getenv("BARELOG_LEVEL"))
-	level := INFO // значение по умолчанию
+	level := INFO
 
 	switch levelStr {
 	case "debug":
@@ -108,10 +100,11 @@ func Init() {
 	case "error":
 		level = ERROR
 	case "":
-		//default
+		// default
 	default:
 		fmt.Fprintf(os.Stderr, "barelog: неизвестный уровень: %q, используем INFO\n", levelStr)
 	}
 
 	SetGlobal(New(level))
 }
+
