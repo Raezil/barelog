@@ -1,4 +1,4 @@
-package lcp
+package barelog
 
 import (
 	"context"
@@ -107,4 +107,3 @@ func Init() {
 
 	SetGlobal(New(level))
 }
-
