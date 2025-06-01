@@ -1,14 +1,12 @@
+> The Russian localization of this README can be found in the file: `README.ru.md`
 
 # barelog
 
-**barelog** — это минималистичная библиотека логирования для Go без внешних зависимостей. 
-Поддерживает цветной вывод, уровни логирования, глобальный логгер и логгер в контексте.
-
-> 
+**barelog** is a minimal, fast, and dependency-free logger for Go. It is suitable for libraries, microservices, and any Go application where you want fast logging without extra dependencies.
 
 ---
 
-## Установка
+## Installation
 
 ```bash
 go get github.com/buraev/barelog@latest
@@ -16,7 +14,7 @@ go get github.com/buraev/barelog@latest
 
 ---
 
-## Быстрый старт
+## Quick Start
 
 ```go
 package main
@@ -24,69 +22,54 @@ package main
 import "github.com/buraev/barelog"
 
 func main() {
-    barelog.Init() // автоматически настраивает логгер из переменных окружения
+    barelog.Init() // Initialize the logger
 
-    barelog.Info("Сервер запущен", "port", 8080)
-    barelog.Debug("Подробности", "trace_id")
+    barelog.Info("Starting application", "port", 8080)
+    barelog.Debug("Debugging info", "trace_id")
 }
 ```
 
 ---
 
-## Уровни логирования
+## Log Levels
 
-* `DEBUG`
-* `INFO`
-* `WARN`
-* `ERROR`
+- `DEBUG`
+- `INFO`
+- `WARN`
+- `ERROR`
 
-Выводятся в цвете (если терминал поддерживает ANSI):
+Log levels are set globally via `barelog.Init()`. Example:
 
 ```go
-barelog.Debug("отладочная информация")
-barelog.Info("инфо-сообщение", "user", "alice")
-barelog.Warn("предупреждение", "attempt", 2)
-barelog.Error("ошибка", "err", "connection refused")
+barelog.Debug("This is a debug message")
+barelog.Info("User login", "user", "alice")
+barelog.Warn("Attempt", "attempt", 2)
+barelog.Error("Connection refused", "err", "connection refused")
 ```
 
 ---
 
-## Глобальный логгер
+## Contextual Logging
 
-Вы можете использовать barelog напрямую без создания `Logger` вручную:
-
-```go
-barelog.Info("готов к работе")
-```
-
-Если нужно — установите свой глобальный логгер:
-
-```go
-logger := barelog.New(barelog.DEBUG)
-barelog.SetGlobal(logger)
-```
-
----
-
-## Логгер в контексте
-
-Подходит для middleware, request-scope логирования и т. д.:
+barelog supports middleware, request-scoped logging, etc. For example:
 
 ```go
 ctx := barelog.WithContext(context.Background(), barelog.New(barelog.DEBUG))
 log := barelog.FromContext(ctx)
-log.Info("из контекста", "req_id")
+log.Info("Request started", "req_id")
 ```
 
 ---
 
-## Настройка через переменные окружения
+## Custom Log Levels
 
-| Переменная      | Описание            | Пример          |
-| --------------- | ------------------- | --------------- |
-| `BARELOG_LEVEL` | Уровень логирования | `debug`, `info` |
+You can define your own log levels if needed:
 
-Пример:
+| Level           | Description             | Code Example             |
+|-----------------|------------------------|--------------------------|
+| `BARELOG_LEVEL` | Custom log level        | `debug`, `info`          |
+
+Example:
 
 ```bash
 BARELOG_LEVEL=debug ./yourApp
@@ -94,26 +77,10 @@ BARELOG_LEVEL=debug ./yourApp
 
 ---
 
-## Возможности ( планируются )
-
-*
-
----
-
-## Почему `barelog`?
-
-* Zero dependencies
-* Один файл — легко читать, понимать и адаптировать
-* Хорош для CLI, сервисов, микросервисов, тестов
-
----
-
-## Лицензия
+## License
 
 MIT
 
 ---
-
-## Автор
 
 [github.com/buraev](https://github.com/buraev)
